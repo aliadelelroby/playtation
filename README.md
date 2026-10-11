@@ -1,16 +1,30 @@
+<p align="center">
+  <img src="docs/images/icon.png" width="128" alt="Playtation icon">
+</p>
+
 <h1 align="center">Playtation</h1>
 
 <p align="center">
   <b>Your Windows games on the Mac, on a console-style home screen.</b><br>
-  Sit back, pick up a controller, press ✕.
+  Sit back, pick up a controller, press <b>✕</b>.
 </p>
 
 <p align="center">
-  <a href="https://github.com/aliadelelroby/playtation/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/aliadelelroby/playtation/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/aliadelelroby/playtation?label=download&style=for-the-badge"></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-black?style=for-the-badge&logo=apple">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge">
+</p>
+
+<p align="center">
   <a href="#get-playing-in-5-minutes">Get playing</a> ·
+  <a href="#a-tour">Tour</a> ·
   <a href="#controller-cheat-sheet">Controls</a> ·
   <a href="#troubleshooting">Help</a> ·
   <a href="CONTRIBUTING.md">Contribute</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/home.jpg" alt="Playtation home screen with a tile row, categories and Liquid Glass controls">
 </p>
 
 ---
@@ -20,6 +34,27 @@ already run through CrossOver and Steam, lays them out like a console dashboard,
 your controller. No more hunting through Finder and bottle folders.
 
 > Playtation is an independent fan project. It is not affiliated with Sony, CodeWeavers or Valve.
+
+## A tour
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/apps.jpg" alt="Apps shelf with Prime Video, Spotify, Twitch, YouTube, Netflix and Disney+"></td>
+    <td width="50%"><img src="docs/images/search.jpg" alt="On-screen search keyboard with live results"></td>
+  </tr>
+  <tr>
+    <td><b>Apps shelf.</b> Steam, Spotify, YouTube, Twitch, Netflix, Disney+ and Prime Video sit in one grouped shelf and open from the same row.</td>
+    <td><b>Search with a controller.</b> A PS-style keyboard filters your library as you type.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/add-game.jpg" alt="Add Game window with bottle, program, name and environment variables"></td>
+    <td width="50%"><img src="docs/images/settings.jpg" alt="Settings page with the game resolution option"></td>
+  </tr>
+  <tr>
+    <td><b>Add Game.</b> Run an installer or save any program as a launcher, with its own environment variables.</td>
+    <td><b>Game resolution.</b> Choose the maximum resolution games run at, and keep HDR working.</td>
+  </tr>
+</table>
 
 ## What you get
 

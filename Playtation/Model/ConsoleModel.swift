@@ -149,10 +149,11 @@ final class ConsoleModel: ObservableObject {
         return visible[selected]
     }
 
-    var accountName: String { NSFullUserName() }
+    var accountName: String { ScreenshotTour.isOn ? "Player" : NSFullUserName() }
 
     var accountImage: NSImage? {
-        CBIdentity(name: NSUserName(), authority: CBIdentityAuthority.default())?.image
+        if ScreenshotTour.isOn { return nil }
+        return CBIdentity(name: NSUserName(), authority: CBIdentityAuthority.default())?.image
     }
 
     init() {

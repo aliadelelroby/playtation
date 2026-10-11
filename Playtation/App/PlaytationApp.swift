@@ -80,6 +80,7 @@ struct RootView: View {
                 NSApp.activate(ignoringOtherApps: true)
                 model.refresh()
                 PlaytationWindow.applyLaunchPreference()
+                if ScreenshotTour.isOn { Task { await ScreenshotTour.run(model: model) } }
             }
     }
 }
@@ -131,6 +132,7 @@ enum PlaytationWindow {
 
     static func applyLaunchPreference() {
         watch()
+        if ScreenshotTour.isOn { return }
         if let window = NSApp.keyWindow ?? NSApp.windows.first(where: \.canBecomeMain) {
             enterFullScreenIfPreferred(window)
         }

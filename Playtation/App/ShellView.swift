@@ -78,11 +78,6 @@ struct ShellView: View {
                 case .settings:
                     settingsScreen
                 }
-                if model.showAdd {
-                    AddGameOverlay()
-                        .zIndex(9)
-                        .transition(.opacity)
-                }
                 if model.searching {
                     SearchKeyboard()
                         .zIndex(7)
@@ -100,6 +95,10 @@ struct ShellView: View {
                 if model.showDetails, let game = model.currentGame {
                     GameDetailsOverlay(game: game)
                         .transition(.opacity)
+                }
+                if model.showAdd {
+                    AddGameOverlay()
+                        .zIndex(9)
                 }
                 if let banner = model.banner {
                     VStack {

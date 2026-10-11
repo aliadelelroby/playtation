@@ -33,6 +33,13 @@ under `Playtation/` and run `xcodegen generate` again.
 - Use native SwiftUI and Liquid Glass APIs, with an availability fallback for older macOS.
 - No force unwraps on data from disk or the network.
 
+## Updating the screenshots
+
+Launch the app with `PLAYTATION_CAPTURE_DIR=/some/folder`. It walks through the main screens, saves a PNG of
+its own window for each (no Screen Recording permission needed, and a generic profile is shown instead of yours),
+then quits. Resize to about 1600 px wide and put the JPEGs in `docs/images/`. The tour lives in
+`Playtation/System/ScreenshotTour.swift`.
+
 ## Good first issues
 
 - More launchers in `Game.isLauncher` or more services in `MediaApps`.

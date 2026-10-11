@@ -170,7 +170,7 @@ struct SettingsView: View {
                 .font(PS.font(34, .medium))
             systemRow("Account", model.accountName)
             systemRow("CrossOver", model.crossoverVersion.map { "Version \($0)" } ?? "Not found")
-            systemRow("Application", model.crossoverPath ?? "Install CrossOver to launch games")
+            systemRow("Application", model.crossoverPath.map { $0.replacingOccurrences(of: NSHomeDirectory(), with: "~") } ?? "Install CrossOver to launch games")
             toggleRow(
                 "Full Screen",
                 "Playtation opens filling the display. Turn this off if you want a window.",
