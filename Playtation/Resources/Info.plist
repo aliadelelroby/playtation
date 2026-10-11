@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ATSApplicationFontsPath</key>
+	<string>Fonts</string>
+	<key>CFBundleDisplayName</key>
+	<string>Playtation</string>
+	<key>CFBundleIconFile</key>
+	<string>Playtation.icns</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.games</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Playtation focuses and full-screens the game after launch.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Playtation uses Screen Recording to find the game window so it can focus it and full-screen it.</string>
+</dict>
+</plist>

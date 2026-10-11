@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Xcode (the project is generated from project.yml with XcodeGen)
+Playtation.xcodeproj/
+DerivedData/
+build/
+.build/
+*.xcuserstate
+xcuserdata/
+
+# Local secrets
+rawg.key
