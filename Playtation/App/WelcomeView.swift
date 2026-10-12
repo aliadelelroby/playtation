@@ -17,27 +17,12 @@ struct WelcomeView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
 
-            VStack(spacing: 50) {
-                VStack(spacing: 12) {
-                    Text("Welcome Back to PlayStation")
-                        .font(PS.font(42, .regular))
-                        .tracking(1)
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
-                    Text("Who's using this controller?")
-                        .font(PS.font(19, .regular))
-                        .foregroundStyle(Color.white.opacity(0.55))
-                }
-                .opacity(model.welcomeIntroduced ? 1 : 0)
-                .offset(y: model.welcomeIntroduced ? 0 : -24)
-
-                ProfileCard(name: model.accountName, image: model.accountImage)
-                    .scaleEffect(model.welcomeIntroduced ? 1.1 : 0.6)
-                    .opacity(model.welcomeIntroduced ? 1 : 0)
-                    .onHover { inside in
-                        if inside { model.hoverWelcome() }
-                    }
-                    .onTapGesture { model.confirmWelcome() }
+            if model.patternPrompt == .unlock {
+                unlock
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            } else {
+                profile
+                    .transition(.opacity)
             }
 
             WelcomeClock()
@@ -48,6 +33,58 @@ struct WelcomeView: View {
             if model.signingIn {
                 signingOverlay
             }
+        }
+        .animation(.easeOut(duration: 0.25), value: model.patternPrompt == .unlock)
+    }
+
+    private var unlock: some View {
+        VStack(spacing: 30) {
+            HStack(spacing: 14) {
+                ProfileMark(image: model.accountImage, name: model.accountName, side: 44)
+                    .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                Text(model.accountName)
+                    .font(PS.font(19, .regular))
+                    .foregroundStyle(.white)
+            }
+            PatternCaption(ink: .white)
+            PatternGrid(ink: .white, accent: Color(red: 0.25, green: 0.5, blue: 1), side: 300)
+            HStack(spacing: 24) {
+                hint("hand.draw", "Draw on touchpad")
+                hint("circle", "Back")
+            }
+            .foregroundStyle(Color.white.opacity(0.55))
+        }
+    }
+
+    private func hint(_ symbol: String, _ label: String) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: symbol).font(.system(size: 13, weight: .semibold))
+            Text(label).font(PS.font(13, .medium))
+        }
+    }
+
+    private var profile: some View {
+        VStack(spacing: 50) {
+            VStack(spacing: 12) {
+                Text("Welcome Back to PlayStation")
+                    .font(PS.font(42, .regular))
+                    .tracking(1)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
+                Text("Who's using this controller?")
+                    .font(PS.font(19, .regular))
+                    .foregroundStyle(Color.white.opacity(0.55))
+            }
+            .opacity(model.welcomeIntroduced ? 1 : 0)
+            .offset(y: model.welcomeIntroduced ? 0 : -24)
+
+            ProfileCard(name: model.accountName, image: model.accountImage)
+                .scaleEffect(model.welcomeIntroduced ? 1.1 : 0.6)
+                .opacity(model.welcomeIntroduced ? 1 : 0)
+                .onHover { inside in
+                    if inside { model.hoverWelcome() }
+                }
+                .onTapGesture { model.confirmWelcome() }
         }
     }
 

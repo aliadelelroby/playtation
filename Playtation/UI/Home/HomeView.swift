@@ -150,9 +150,17 @@ struct DashboardView: View {
             iconButton("gearshape", index: 1) { model.activateTop(1) }
             Button { model.activateTop(2) } label: {
                 ProfileMark(image: model.accountImage, name: model.accountName, side: 44)
-                    .overlay(Circle().stroke(Color.white.opacity(model.zone == .top && model.topIndex == 2 ? 0.95 : 0.3), lineWidth: 2))
+                    .overlay(Circle().stroke(Color.white.opacity((model.zone == .top && model.topIndex == 2) || model.showProfile ? 0.95 : 0.3), lineWidth: 2))
             }
             .buttonStyle(.plain)
+            .overlay(alignment: .topTrailing) {
+                if model.showProfile {
+                    profileMenu
+                        .offset(y: 56)
+                        .transition(.opacity.combined(with: .scale(scale: 0.94, anchor: .topTrailing)))
+                }
+            }
+            .zIndex(1)
             DashClock()
         }
         .padding(.horizontal, 60)
@@ -302,6 +310,35 @@ struct DashboardView: View {
             .animation(.easeOut(duration: 0.2), value: model.heroIndex)
         }
         .frame(maxWidth: 620, alignment: .leading)
+    }
+
+    private var profileMenu: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(model.accountName)
+                .font(PS.font(13, .medium))
+                .foregroundStyle(Color.white.opacity(0.6))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+            ForEach(Array(model.profileActions.enumerated()), id: \.offset) { index, action in
+                let on = model.panelIndex == index
+                Button {
+                    model.panelIndex = index
+                    model.confirmProfile()
+                } label: {
+                    Text(action.title(hasPattern: model.hasPattern))
+                        .font(PS.font(14, .bold))
+                        .foregroundStyle(Color.white)
+                        .frame(width: 210, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .frame(height: 40)
+                        .background(Capsule().fill(Color.white.opacity(on ? 0.24 : 0)))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(8)
+        .fixedSize()
+        .glassRounded(22, tint: Color.black.opacity(0.45))
     }
 
     private var moreMenu: some View {

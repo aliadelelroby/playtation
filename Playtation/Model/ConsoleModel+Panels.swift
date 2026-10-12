@@ -44,7 +44,7 @@ extension ConsoleModel {
     }
 
     var canSteer: Bool {
-        phase == .shell && tab == .home && !showSettings && !showDetails && !showPower && !showMore && !searching && !showAdd
+        phase == .shell && tab == .home && !showSettings && !showDetails && !showPower && !showMore && !showProfile && !searching && !showAdd
     }
 
     /// Moves inside an open panel or the settings page. Returns true when that surface handled the stick.
@@ -56,6 +56,10 @@ extension ConsoleModel {
         }
         if showMore {
             if let vertical { stepPanel(vertical, count: 3); confirmRemove = false }
+            return true
+        }
+        if showProfile {
+            if let vertical { stepPanel(vertical, count: profileActions.count) }
             return true
         }
         if showDetails {
@@ -201,7 +205,8 @@ extension ConsoleModel {
                 var next = min(settingsRowCount - 1, max(0, settingsRow + vertical))
                 if settingsSection == 2 {
                     if settingsRow == 3, vertical < 0 { next = 1 }
-                    if settingsRow == 2, vertical > 0 { next = 2 }
+                    if settingsRow == 2 || settingsRow == 3, vertical > 0 { next = 4 }
+                    if settingsRow == 4, vertical < 0 { next = 2 }
                 }
                 guard next != settingsRow else {
                     ConsoleFeel.shared.bump()
@@ -265,7 +270,7 @@ extension ConsoleModel {
         switch settingsSection {
         case 0: return modelBottlesEmpty ? 1 : 9
         case 1: return max(bottles.count, 1)
-        default: return 4
+        default: return hasPattern ? 6 : 5
         }
     }
 
@@ -289,6 +294,10 @@ extension ConsoleModel {
     }
 
     func confirmSettings() {
+        if settingsSection == 2, settingsRow >= 4 {
+            if settingsRow == 4 { beginPatternSetup() } else { removePattern() }
+            return
+        }
         guard let bottle = settingsBottle else { return }
         ConsoleSound.shared.confirm()
         switch settingsSection {
@@ -334,6 +343,7 @@ extension ConsoleModel {
             showSettings = false
             showPower = false
             showMore = false
+            showProfile = false
             showDetails = true
         }
     }
@@ -347,6 +357,7 @@ extension ConsoleModel {
             showDetails = false
             showPower = false
             showMore = false
+            showProfile = false
             showSettings = true
         }
     }

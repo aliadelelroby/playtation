@@ -7,6 +7,8 @@ final class ControllerSupport {
     private var stickLatch = false
     private var triggerLatch = false
     private var lastStart = Date.distantPast
+    private var touchIdle: DispatchWorkItem?
+    private var touching = false
 
     init(model: ConsoleModel) {
         self.model = model
@@ -134,6 +136,7 @@ final class ControllerSupport {
                 }
             }
         }
+        bindTouchpad(controller, pad: pad)
         pad.leftThumbstick.valueChangedHandler = { [weak self] _, x, y in
             guard let self else { return }
             if abs(x) < 0.45 && abs(y) < 0.45 {
@@ -149,6 +152,73 @@ final class ControllerSupport {
                     self.model?.moveVertical(y > 0 ? -1 : 1)
                 }
             }
+        }
+    }
+
+    /// The touchpad draws the sign-in pattern. Lifting the finger ends it; clicking the pad submits it.
+    /// Prefers the touchpad element, which reports touch down and up. Pads without one only report
+    /// position, so a short pause in movement stands in for the finger lifting.
+    private func bindTouchpad(_ controller: GCController, pad: GCExtendedGamepad) {
+        if let touchpad = controller.physicalInputProfile.allTouchpads.first {
+            touchpad.reportsAbsoluteTouchSurfaceValues = true
+            let moved: GCControllerTouchpadHandler = { [weak self] _, x, y, _, _ in
+                self?.touch(x: x, y: y)
+            }
+            touchpad.touchDown = moved
+            touchpad.touchMoved = moved
+            touchpad.touchUp = { [weak self] _, _, _, _, _ in
+                self?.liftTouch()
+            }
+            touchpad.button.pressedChangedHandler = { [weak self] _, _, pressed in
+                self?.tap(pressed) { $0.submitPattern() }
+            }
+            return
+        }
+        let surface: GCControllerDirectionPad
+        let button: GCControllerButtonInput
+        if let dual = pad as? GCDualSenseGamepad {
+            surface = dual.touchpadPrimary
+            button = dual.touchpadButton
+        } else if let shock = pad as? GCDualShockGamepad {
+            surface = shock.touchpadPrimary
+            button = shock.touchpadButton
+        } else {
+            return
+        }
+        surface.valueChangedHandler = { [weak self] _, x, y in
+            guard let self else { return }
+            // The surface snaps back to the exact center when the finger lifts.
+            if x == 0, y == 0 {
+                if self.touching { self.liftTouch() }
+                return
+            }
+            self.touch(x: x, y: y)
+            self.touchIdle?.cancel()
+            let idle = DispatchWorkItem { [weak self] in self?.liftTouch() }
+            self.touchIdle = idle
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: idle)
+        }
+        button.pressedChangedHandler = { [weak self] _, _, pressed in
+            self?.tap(pressed) { $0.submitPattern() }
+        }
+    }
+
+    /// Drops the exact-center sample pads send as the finger lifts. Passing it on would drag the
+    /// pattern back to the middle dot and close every shape into a loop.
+    private func touch(x: Float, y: Float) {
+        guard x != 0 || y != 0 else { return }
+        touching = true
+        Task { @MainActor in
+            self.model?.patternTouch(x: x, y: y)
+        }
+    }
+
+    private func liftTouch() {
+        touching = false
+        touchIdle?.cancel()
+        touchIdle = nil
+        Task { @MainActor in
+            self.model?.patternLift()
         }
     }
 

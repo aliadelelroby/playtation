@@ -170,6 +170,7 @@ extension ConsoleModel {
         }
         confirmRemove = false
         showMore = false
+        showProfile = false
         if game.isCustom {
             launchers.removeAll { CustomLauncherStore.idPrefix + $0.id == game.id }
             CustomLauncherStore.save(launchers)

@@ -187,6 +187,15 @@ struct SettingsView: View {
             }
             .padding(.top, 8)
             .id("row2")
+            patternRow("Sign-in pattern", model.hasPattern ? "Change pattern" : "Set pattern", model.hasPattern
+                ? "Asked for after you pick your profile. Drawn on the controller's touchpad."
+                : "Ask for a pattern, drawn on the controller's touchpad, after you pick your profile.",
+                contentFocused && model.settingsRow == 4) { model.beginPatternSetup() }
+            .id("row4")
+            if model.hasPattern {
+                patternRow("Remove pattern", "Remove", "Sign in without a pattern.", contentFocused && model.settingsRow == 5) { model.removePattern() }
+                    .id("row5")
+            }
             Text("Hidden games stay out of Home. Turn them back on from a game's settings after you focus it in Library.")
                 .font(PS.font(13, .regular))
                 .foregroundStyle(.black.opacity(0.55))
@@ -231,6 +240,29 @@ struct SettingsView: View {
         }
         .padding(14)
         .frame(maxWidth: 680, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: Corner.row, style: .continuous).fill(focused ? Color.black : Color.white.opacity(0.8)))
+        .foregroundStyle(ink)
+    }
+
+    private func patternRow(_ title: String, _ action: String, _ detail: String, _ focused: Bool, _ run: @escaping () -> Void) -> some View {
+        let ink = focused ? Color.white : Color.black
+        return HStack {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(PS.font(15, .bold))
+                Text(detail).font(PS.font(13, .regular)).foregroundStyle(ink.opacity(0.7))
+            }
+            Spacer()
+            Button(action: run) {
+                Text(action)
+                    .font(PS.font(14, .bold))
+                    .padding(.horizontal, 14)
+                    .frame(height: 34)
+                    .background(Capsule().fill(ink.opacity(0.12)))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(14)
+        .frame(maxWidth: 680)
         .background(RoundedRectangle(cornerRadius: Corner.row, style: .continuous).fill(focused ? Color.black : Color.white.opacity(0.8)))
         .foregroundStyle(ink)
     }

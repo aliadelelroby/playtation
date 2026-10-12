@@ -22,6 +22,8 @@ final class ConsoleModel: ObservableObject {
     @Published var showDetails = false
     @Published var showPower = false
     @Published var showMore = false
+    /// The menu under the profile picture on Home.
+    @Published var showProfile = false
     @Published var panelIndex = 0
     /// Game settings: the highlight is inside the page, not on the sidebar.
     @Published var gameInContent = false
@@ -66,6 +68,19 @@ final class ConsoleModel: ObservableObject {
     enum Phase { case boot, welcome, shell }
 
     @Published var signingIn = false
+    /// Non-nil while a sign-in pattern is being asked for or set up.
+    @Published var patternPrompt: PatternPrompt?
+    @Published var pattern = PatternTrace()
+    @Published var patternMessage: String?
+    /// Set briefly after a wrong or rejected pattern so the grid can show it in red.
+    @Published var patternFailed = false
+    /// Bumped on every failure; the grid shakes when it changes.
+    @Published var patternShake = 0
+    enum PatternPrompt: Equatable {
+        case unlock
+        case create
+        case confirm([Int])
+    }
     /// Stays set once the profile screen has introduced itself, so a redraw cannot play that intro again.
     @Published var welcomeIntroduced = false
     enum DashZone { case top, tiles, hero }

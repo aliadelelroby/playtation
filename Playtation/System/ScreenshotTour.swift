@@ -55,7 +55,49 @@ enum ScreenshotTour {
         model.settingsSection = 2
         await pause(1.2)
         await save("settings", in: directory)
+
+        model.tab = .home
+        model.zone = .top
+        model.topIndex = 2
+        await pause(1)
+        model.openProfile()
+        await pause(1.5)
+        await save("profile-menu", in: directory)
+        model.showProfile = false
+
+        // Sample patterns only. Nothing is submitted, so the saved pattern is untouched.
+        await pause(1)
+        model.beginPatternSetup()
+        draw([0, 1, 2, 4, 6, 7, 8], then: nil, model: model)
+        await pause(1.5)
+        await save("pattern-setup", in: directory)
+        model.cancelPattern()
+
+        await pause(1)
+        model.phase = .welcome
+        model.welcomeIntroduced = true
+        model.askForPattern()
+        draw([3, 7, 5], then: CGPoint(x: 0.8, y: 0.26), model: model)
+        await pause(2)
+        await save("pattern-sign-in", in: directory)
         NSApp.terminate(nil)
+    }
+
+    /// Slides through the dots the way a finger would, without lifting, so the last line stays live.
+    private static func draw(_ dots: [Int], then finger: CGPoint?, model: ConsoleModel) {
+        var last: CGPoint?
+        let points = dots.map(PatternTrace.center(of:)) + (finger.map { [$0] } ?? [])
+        for point in points {
+            if let last {
+                for step in 1...10 {
+                    let t = CGFloat(step) / 10
+                    model.patternPointer(CGPoint(x: last.x + (point.x - last.x) * t, y: last.y + (point.y - last.y) * t))
+                }
+            } else {
+                model.patternPointer(point)
+            }
+            last = point
+        }
     }
 
     private static func pause(_ seconds: Double) async {

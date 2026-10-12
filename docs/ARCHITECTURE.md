@@ -16,6 +16,7 @@ Playtation is a SwiftUI macOS app with one observable model.
 | `+Library` | Applying scan results, records, bottle changes |
 | `+Artwork` | Names, metadata, icons, tiles and backdrops |
 | `+Boot` | Boot and welcome flow |
+| `+Pattern` | Sign-in pattern: asking for it on the profile screen, setting it up from Settings |
 
 Views read the model and call its methods. They hold no game logic.
 
@@ -46,6 +47,8 @@ A `Game` is a plain value. Special kinds are marked by fields, not subclasses: `
 `ControllerSupport` binds `GCController` buttons to model methods. `DualSenseHID` reads the PS button,
 which macOS otherwise swallows. `ControllerAgent` is a login item that keeps that working when
 Playtation is not running. While a game runs, `PadGate` stops the shell from reacting to the pad.
+The touchpad draws the sign-in pattern: `PatternTrace` turns touch positions into dots (pure, unit
+tested) and `PatternLock` keeps a salted hash of the result.
 
 ## UI
 

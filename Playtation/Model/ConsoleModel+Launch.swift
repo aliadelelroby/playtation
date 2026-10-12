@@ -13,7 +13,7 @@ extension ConsoleModel {
             confirmWelcome()
             return
         }
-        guard phase == .shell, tab == .home, !showSettings, !showPower else { return }
+        guard phase == .shell, patternPrompt == nil, tab == .home, !showSettings, !showPower else { return }
         startSelected()
     }
 
@@ -111,6 +111,7 @@ extension ConsoleModel {
         }
         showDetails = false
         showMore = false
+        showProfile = false
         launchingID = game.id
         hoverLockUntil = Date().addingTimeInterval(2.2)
         pinSelected(to: game.id)

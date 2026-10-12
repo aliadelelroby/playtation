@@ -20,7 +20,7 @@ extension ConsoleModel {
 
     func moveHorizontal(_ delta: Int) {
         pointerAtPad = NSEvent.mouseLocation
-        guard shellOwnsPad() else { return }
+        guard shellOwnsPad(), patternPrompt == nil else { return }
         if phase == .welcome {
             hoverWelcome()
             return
@@ -61,7 +61,7 @@ extension ConsoleModel {
 
     func moveVertical(_ delta: Int) {
         pointerAtPad = NSEvent.mouseLocation
-        guard shellOwnsPad() else { return }
+        guard shellOwnsPad(), patternPrompt == nil else { return }
         if phase == .welcome {
             hoverWelcome()
             return
@@ -102,6 +102,10 @@ extension ConsoleModel {
     func cross() {
         guard shellOwnsPad() else { return }
         if phase == .boot { return }
+        if patternPrompt != nil {
+            submitPattern()
+            return
+        }
         if phase == .welcome {
             confirmWelcome()
             return
@@ -116,6 +120,10 @@ extension ConsoleModel {
         }
         if showMore {
             confirmMore()
+            return
+        }
+        if showProfile {
+            confirmProfile()
             return
         }
         if showDetails {
@@ -148,6 +156,10 @@ extension ConsoleModel {
     func circle() {
         guard shellOwnsPad() else { return }
         if phase == .boot { return }
+        if patternPrompt != nil {
+            cancelPattern()
+            return
+        }
         if phase == .welcome {
             returnToBoot()
             return
@@ -163,6 +175,11 @@ extension ConsoleModel {
         if showMore {
             confirmRemove = false
             withAnimation(.easeOut(duration: 0.2)) { showMore = false }
+            ConsoleSound.shared.back()
+            return
+        }
+        if showProfile {
+            withAnimation(.easeOut(duration: 0.2)) { showProfile = false }
             ConsoleSound.shared.back()
             return
         }
@@ -254,11 +271,12 @@ extension ConsoleModel {
                 showDetails = false
                 showSettings = false
                 showMore = false
+                showProfile = false
                 settingsInContent = false
                 settingsRow = 0
             }
         default:
-            psButton()
+            openProfile()
         }
     }
 
@@ -286,6 +304,7 @@ extension ConsoleModel {
             return
         }
         showMore = false
+        showProfile = false
         if panelIndex == 0 {
             openDetails()
         } else {
@@ -315,6 +334,7 @@ extension ConsoleModel {
     }
 
     func shoulder(_ delta: Int) {
+        guard patternPrompt == nil else { return }
         if !searching, shellOwnsPad(), phase == .shell, tab == .home, canSteer {
             cycleCategory(delta)
             return
@@ -360,7 +380,7 @@ extension ConsoleModel {
     }
 
     func triangle() {
-        guard shellOwnsPad() else { return }
+        guard shellOwnsPad(), patternPrompt == nil else { return }
         if searching {
             kbType(" ")
             return
@@ -374,13 +394,14 @@ extension ConsoleModel {
             showDetails = false
             showPower = false
             showMore = false
+            showProfile = false
             showSettings = true
             tab = .home
         }
     }
 
     func square() {
-        guard shellOwnsPad() else { return }
+        guard shellOwnsPad(), patternPrompt == nil else { return }
         if searching {
             kbBackspace()
             return
@@ -392,13 +413,14 @@ extension ConsoleModel {
             showSettings = false
             showPower = false
             showMore = false
+            showProfile = false
             showDetails = true
             tab = .home
         }
     }
 
     func psButton() {
-        guard shellOwnsPad() else { return }
+        guard shellOwnsPad(), patternPrompt == nil else { return }
         if phase == .boot { return }
         if phase == .welcome {
             confirmWelcome()
@@ -413,6 +435,7 @@ extension ConsoleModel {
         ConsoleSound.shared.menu()
         withAnimation(.easeInOut(duration: 0.4)) {
             showMore = false
+            showProfile = false
             showSettings = false
             showDetails = false
             showPower = true
@@ -434,6 +457,7 @@ extension ConsoleModel {
                 showSettings = false
                 showDetails = false
                 showMore = false
+                showProfile = false
                 tab = .settings
             }
             ConsoleSound.shared.restoreMusic()
@@ -513,6 +537,7 @@ extension ConsoleModel {
             showDetails = false
             showPower = false
             showMore = false
+            showProfile = false
             searching = false
             zone = .hero
             heroIndex = 0

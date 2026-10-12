@@ -34,6 +34,19 @@ extension ConsoleModel {
 
     func confirmWelcome() {
         guard phase == .welcome, !signingIn else { return }
+        if patternPrompt == .unlock {
+            submitPattern()
+            return
+        }
+        if hasPattern {
+            askForPattern()
+            return
+        }
+        signIn()
+    }
+
+    func signIn() {
+        guard phase == .welcome, !signingIn else { return }
         signingIn = true
         ConsoleSound.shared.confirm()
         Task { @MainActor in
@@ -44,7 +57,7 @@ extension ConsoleModel {
     }
 
     func returnToBoot() {
-        guard phase == .welcome, !signingIn else { return }
+        guard phase == .welcome, !signingIn, patternPrompt == nil else { return }
         ConsoleSound.shared.back()
         ConsoleSound.shared.stopMusic()
         welcomeIntroduced = false

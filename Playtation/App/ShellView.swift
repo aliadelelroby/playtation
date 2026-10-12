@@ -100,6 +100,11 @@ struct ShellView: View {
                     AddGameOverlay()
                         .zIndex(9)
                 }
+                if model.patternPrompt != nil, model.patternPrompt != .unlock {
+                    PatternSetupOverlay()
+                        .zIndex(10)
+                        .transition(.opacity)
+                }
                 if let banner = model.banner {
                     VStack {
                         Spacer()
@@ -133,9 +138,20 @@ struct ShellView: View {
             case .return:
                 model.confirmWelcome()
             case .escape:
-                model.returnToBoot()
+                model.circle()
             case .leftArrow, .rightArrow, .upArrow, .downArrow:
                 model.hoverWelcome()
+            default:
+                break
+            }
+            return .handled
+        }
+        if model.patternPrompt != nil {
+            switch press.key {
+            case .return:
+                model.cross()
+            case .escape:
+                model.circle()
             default:
                 break
             }

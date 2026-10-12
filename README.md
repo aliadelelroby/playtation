@@ -54,6 +54,18 @@ your controller. No more hunting through Finder and bottle folders.
     <td><b>Add Game.</b> Run an installer or save any program as a launcher, with its own environment variables.</td>
     <td><b>Game resolution.</b> Choose the maximum resolution games run at, and keep HDR working.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/pattern-sign-in.jpg" alt="Profile screen asking for a sign-in pattern on a 3 by 3 grid"></td>
+    <td width="50%"><img src="docs/images/pattern-setup.jpg" alt="Setting a new sign-in pattern over the home screen"></td>
+  </tr>
+  <tr>
+    <td><b>Sign-in pattern.</b> Lock your profile with an Android-style pattern, drawn on the DualSense touchpad.</td>
+    <td><b>Set it in seconds.</b> Draw it twice to confirm. Change or remove it at any time.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/profile-menu.jpg" alt="Profile menu with sign-in pattern, sign out and power options"></td>
+    <td><b>Profile menu.</b> Select your picture on Home to set, change or remove your pattern, sign out, or open the power menu.</td>
+  </tr>
 </table>
 
 ## What you get
@@ -67,6 +79,7 @@ your controller. No more hunting through Finder and bottle folders.
   Prime Video.
 - ➕ **Add Game**: run an installer, or save any program as a launcher with its own environment variables.
 - 🕹️ **Made for controllers**: DualSense and other pads, an on-screen keyboard for search, haptics.
+- 🔒 **Sign-in pattern**: lock your profile with a pattern you draw on the controller's touchpad.
 - 🖥️ **Resolution that suits your games**: pick the maximum resolution Playtation switches to, and your
   display goes back afterwards. This keeps HDR working, which CrossOver's *High Resolution* option turns off.
 
@@ -116,8 +129,18 @@ Start Menu entry in CrossOver (or is installed through Steam in a bottle).
 | L1 / R1 | Switch category (All, Games, Apps) |
 | R2 | Start the highlighted game |
 | PS / Options | Open the PS menu |
+| Touchpad | Draw your sign-in pattern (lift your finger to finish) |
 
 On the home screen, pick the magnifier for a PS-style keyboard. Every screen shows its own button hints.
+
+## Lock your profile with a pattern
+
+Select your picture at the top right of Home and choose **Set sign-in pattern** (it's also under
+**Settings → System**). Draw a pattern of at least 4 dots on the touchpad, lift your finger, then draw it
+again to confirm. From then on, Playtation asks for it after you pick your profile.
+
+Patterns work like Android: one continuous line, each dot used once, and passing straight over an unused
+dot includes it. The pattern keeps casual hands off your profile; it doesn't protect your Mac account.
 
 ## Add a game yourself
 
@@ -170,6 +193,12 @@ name, or add a free [RAWG key](https://rawg.io/apidocs) by exporting `RAWG_API_K
 <summary><b>HDR turns off when I start a game</b></summary>
 
 Leave CrossOver's *High Resolution* option off and choose a maximum under **Settings → System → Game resolution**.
+</details>
+
+<details>
+<summary><b>I forgot my sign-in pattern</b></summary>
+
+Run `defaults delete com.playtation.Playtation signInPattern` in Terminal, then restart Playtation.
 </details>
 
 <details>

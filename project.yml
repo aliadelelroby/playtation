@@ -66,6 +66,7 @@ targets:
     sources:
       - path: Tests/PlaytationTests
       - path: Playtation/Metadata/TitleMatcher.swift
+      - path: Playtation/Input/PatternTrace.swift
     settings:
       GENERATE_INFOPLIST_FILE: YES
       PRODUCT_BUNDLE_IDENTIFIER: com.playtation.PlaytationTests
