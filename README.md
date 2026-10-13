@@ -80,6 +80,7 @@ your controller. No more hunting through Finder and bottle folders.
 - ➕ **Add Game**: run an installer, or save any program as a launcher with its own environment variables.
 - 🕹️ **Made for controllers**: DualSense and other pads, an on-screen keyboard for search, haptics.
 - 🔒 **Sign-in pattern**: lock your profile with a pattern you draw on the controller's touchpad.
+- 👥 **Users**: give everyone who plays their own profile, play history and pattern, and choose who sees each game.
 - 🖥️ **Resolution that suits your games**: pick the maximum resolution Playtation switches to, and your
   display goes back afterwards. This keeps HDR working, which CrossOver's *High Resolution* option turns off.
 
@@ -142,6 +143,20 @@ again to confirm. From then on, Playtation asks for it after you pick your profi
 Patterns work like Android: one continuous line, each dot used once, and passing straight over an unused
 dot includes it. The pattern keeps casual hands off your profile; it doesn't protect your Mac account.
 
+The first time you pick a profile, Playtation asks whether to set a pattern. Choose **Not now** to skip it;
+you can still set one later.
+
+## Add more users
+
+The Mac account is the main user. To add someone, go to **Settings → Users → Add user** and type their
+name. Each user picks their own card on the profile screen and gets their own sign-in pattern, play
+history and order of games on Home. Pick a user there to rename them, change their color, clear a
+forgotten pattern or remove them.
+
+Every game is shared by default. To limit one, focus it on Home and open **Game settings → Players**,
+then untick the users who shouldn't see it. The main user always sees every game. Graphics, sync and
+controller settings stay shared, since they belong to the CrossOver bottle.
+
 ## Add a game yourself
 
 Select the **Add Game** tile at the end of the Games row:
@@ -198,7 +213,11 @@ Leave CrossOver's *High Resolution* option off and choose a maximum under **Sett
 <details>
 <summary><b>I forgot my sign-in pattern</b></summary>
 
-Run `defaults delete com.playtation.Playtation signInPattern` in Terminal, then restart Playtation.
+If you're the main user (the Mac account), run
+`defaults write com.playtation.Playtation forgotPattern -bool YES` in Terminal, then restart Playtation.
+
+Anyone else: ask the main user to open **Settings → Users**, pick your profile and choose
+**Remove sign-in pattern**.
 </details>
 
 <details>

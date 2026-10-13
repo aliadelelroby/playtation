@@ -17,7 +17,7 @@ struct WelcomeView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
 
-            if model.patternPrompt == .unlock {
+            if model.patternPrompt != nil {
                 unlock
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
             } else {
@@ -34,13 +34,13 @@ struct WelcomeView: View {
                 signingOverlay
             }
         }
-        .animation(.easeOut(duration: 0.25), value: model.patternPrompt == .unlock)
+        .animation(.easeOut(duration: 0.25), value: model.patternPrompt != nil)
     }
 
     private var unlock: some View {
         VStack(spacing: 30) {
             HStack(spacing: 14) {
-                ProfileMark(image: model.accountImage, name: model.accountName, side: 44)
+                ProfileMark(image: model.accountImage, name: model.accountName, side: 44, color: model.accountColor)
                     .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
                 Text(model.accountName)
                     .font(PS.font(19, .regular))
@@ -66,26 +66,80 @@ struct WelcomeView: View {
     private var profile: some View {
         VStack(spacing: 50) {
             VStack(spacing: 12) {
-                Text("Welcome Back to PlayStation")
+                Text(model.patternOffer ? "Protect Your Profile?" : "Welcome Back to PlayStation")
                     .font(PS.font(42, .regular))
                     .tracking(1)
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
-                Text("Who's using this controller?")
+                Text(model.patternOffer
+                     ? "Set a sign-in pattern so only you can sign in. You can change this later in your profile."
+                     : "Who's using this controller?")
                     .font(PS.font(19, .regular))
                     .foregroundStyle(Color.white.opacity(0.55))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 560)
             }
+            .animation(nil, value: model.patternOffer)
             .opacity(model.welcomeIntroduced ? 1 : 0)
             .offset(y: model.welcomeIntroduced ? 0 : -24)
 
-            ProfileCard(name: model.accountName, image: model.accountImage)
-                .scaleEffect(model.welcomeIntroduced ? 1.1 : 0.6)
-                .opacity(model.welcomeIntroduced ? 1 : 0)
-                .onHover { inside in
-                    if inside { model.hoverWelcome() }
+            HStack(spacing: 56) {
+                ForEach(model.profiles) { profile in
+                    let on = profile.id == model.profileID
+                    ProfileCard(
+                        name: model.displayName(of: profile),
+                        image: model.image(of: profile),
+                        color: profile.tint,
+                        focused: on
+                    )
+                    .scaleEffect(model.welcomeIntroduced ? (on ? 1.1 : 0.82) : 0.6)
+                    .opacity(model.welcomeIntroduced ? (on ? 1 : (model.patternOffer ? 0.25 : 0.55)) : 0)
+                    .onHover { inside in
+                        if inside, on { model.hoverWelcome() }
+                    }
+                    .onTapGesture { model.pickProfile(profile.id) }
                 }
-                .onTapGesture { model.confirmWelcome() }
+            }
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: model.profileID)
+
+            if model.patternOffer {
+                VStack(spacing: 22) {
+                    HStack(spacing: 16) {
+                        offerButton("Set Up Pattern", index: 0)
+                        offerButton("Not Now", index: 1)
+                    }
+                    HStack(spacing: 24) {
+                        hint("xmark", "Select")
+                        hint("circle", "Back")
+                    }
+                    .foregroundStyle(Color.white.opacity(0.55))
+                }
+                .transition(.opacity.combined(with: .offset(y: 12)))
+            }
         }
+    }
+
+    private func offerButton(_ title: String, index: Int) -> some View {
+        let on = model.patternOfferChoice == index
+        return Text(title)
+            .font(PS.font(17, on ? .semibold : .regular))
+            .foregroundStyle(on ? Color.black : Color.white.opacity(0.8))
+            .frame(width: 210, height: 50)
+            .background(Capsule().fill(on ? Color.white : Color.white.opacity(0.08)))
+            .overlay(Capsule().stroke(Color.white.opacity(on ? 0 : 0.25), lineWidth: 1))
+            .shadow(color: on ? Color.white.opacity(0.3) : .clear, radius: 12)
+            .contentShape(Capsule())
+            .animation(.easeOut(duration: 0.15), value: on)
+            .onHover { inside in
+                if inside, !on {
+                    model.patternOfferChoice = index
+                    model.hoverWelcome()
+                }
+            }
+            .onTapGesture {
+                model.patternOfferChoice = index
+                model.confirmPatternOffer()
+            }
     }
 
     private var signingOverlay: some View {
@@ -106,19 +160,21 @@ struct WelcomeView: View {
 private struct ProfileCard: View {
     var name: String
     var image: NSImage?
+    var color: Color
+    var focused: Bool
 
     var body: some View {
         VStack(spacing: 22) {
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.05))
-                ProfileMark(image: image, name: name, side: 168)
+                ProfileMark(image: image, name: name, side: 168, color: color)
                 Circle()
-                    .stroke(Color.white, lineWidth: 2)
-                glare
+                    .stroke(Color.white.opacity(focused ? 1 : 0.35), lineWidth: 2)
+                if focused { glare }
             }
             .frame(width: 180, height: 180)
-            .shadow(color: Color(red: 0, green: 0.26, blue: 1).opacity(0.75), radius: 22)
+            .shadow(color: Color(red: 0, green: 0.26, blue: 1).opacity(focused ? 0.75 : 0), radius: 22)
             Text(name)
                 .font(PS.font(21, .regular))
                 .foregroundStyle(.white)

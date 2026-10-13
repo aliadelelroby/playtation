@@ -7,7 +7,7 @@ struct GameSettingsOverlay: View {
     @State private var name: String = ""
 
     private enum Page: String, CaseIterable, Identifiable {
-        case graphics, sync, metal, controller, library
+        case graphics, sync, metal, controller, library, players
         var id: String { rawValue }
         var title: String {
             switch self {
@@ -16,6 +16,7 @@ struct GameSettingsOverlay: View {
             case .metal: return "MetalFX"
             case .controller: return "Controller"
             case .library: return "Library"
+            case .players: return "Players"
             }
         }
         var index: Int {
@@ -25,6 +26,7 @@ struct GameSettingsOverlay: View {
             case .metal: return 2
             case .controller: return 3
             case .library: return 4
+            case .players: return 5
             }
         }
     }
@@ -37,7 +39,8 @@ struct GameSettingsOverlay: View {
         case 1: return .sync
         case 2: return .metal
         case 3: return .controller
-        default: return .library
+        case 4: return .library
+        default: return .players
         }
     }
 
@@ -140,6 +143,13 @@ struct GameSettingsOverlay: View {
             return "XInput puts the controller on the XInput list. DirectInput leaves it on the DirectInput list."
         case .library:
             return "How this game shows up on Home. The install folder is the Windows directory CrossOver uses."
+        case .players:
+            if !model.signedInAsOwner {
+                return "Only \(model.displayName(of: model.profiles[0])) can choose who sees this game."
+            }
+            return model.otherProfiles.isEmpty
+                ? "Add users in Settings, under Users, to choose who sees \(model.displayName(for: game))."
+                : "Who sees \(model.displayName(for: game)) on Home. You always see every game."
         }
     }
 
@@ -204,6 +214,8 @@ struct GameSettingsOverlay: View {
             }
         case .library:
             library
+        case .players:
+            players
         }
     }
 
@@ -260,6 +272,41 @@ struct GameSettingsOverlay: View {
                 capsule("Show install folder", aiming(3)) {
                     model.focusGame(section: 4, row: 3)
                     model.open(directory)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var players: some View {
+        let others = model.otherProfiles
+        let users = record.users
+        VStack(spacing: 10) {
+            choice("Everyone", "Every user sees this game.", selected: users == nil, row: 0) {
+                model.focusGame(section: 5, row: 0)
+                model.toggleAccess(game, row: 0)
+            }
+            if model.signedInAsOwner {
+                ForEach(Array(others.enumerated()), id: \.element.id) { index, profile in
+                    let allowed = users.map { $0.contains(profile.id) } ?? true
+                    Button {
+                        model.focusGame(section: 5, row: index + 1)
+                        model.toggleAccess(game, row: index + 1)
+                    } label: {
+                        HStack(spacing: 12) {
+                            ProfileMark(image: nil, name: model.displayName(of: profile), side: 32, color: profile.tint)
+                            Text(model.displayName(of: profile)).font(PS.font(15, .bold))
+                            Spacer()
+                            Image(systemName: allowed ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Color.black.opacity(allowed ? 0.85 : 0.35))
+                        }
+                        .padding(14)
+                        .frame(maxWidth: 680, alignment: .leading)
+                        .background(rowPlate(focused: aiming(index + 1)))
+                        .foregroundStyle(Color.black)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

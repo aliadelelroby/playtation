@@ -111,7 +111,7 @@ extension ConsoleModel {
     }
 
     func lastPlayedText(for game: Game) -> String {
-        guard let date = records[game.id]?.lastPlayed else { return "Not played yet" }
+        guard let date = currentProfile.played[game.id]?.lastPlayed else { return "Not played yet" }
         return "Last played " + relative.localizedString(for: date, relativeTo: Date())
     }
 }

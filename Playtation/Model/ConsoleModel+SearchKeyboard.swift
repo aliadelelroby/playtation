@@ -82,6 +82,17 @@ extension ConsoleModel {
     }
 
     func kbType(_ text: String) {
+        if kbTarget != .search {
+            guard nameDraft.count < 20 else {
+                ConsoleFeel.shared.bump()
+                return
+            }
+            nameDraft += text
+            // Capital first letter, then lowercase, like a name field.
+            if kbShift { kbShift = false }
+            ConsoleSound.shared.tick(vertical: 1)
+            return
+        }
         guard query.count < 40 else {
             ConsoleFeel.shared.bump()
             return
@@ -92,6 +103,15 @@ extension ConsoleModel {
     }
 
     func kbBackspace() {
+        if kbTarget != .search {
+            guard !nameDraft.isEmpty else {
+                ConsoleFeel.shared.bump()
+                return
+            }
+            nameDraft.removeLast()
+            ConsoleSound.shared.tick(vertical: -1)
+            return
+        }
         guard !query.isEmpty else {
             ConsoleFeel.shared.bump()
             return

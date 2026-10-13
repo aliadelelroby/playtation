@@ -78,6 +78,11 @@ struct ShellView: View {
                 case .settings:
                     settingsScreen
                 }
+                if let id = model.userMenuID, let profile = model.profiles.first(where: { $0.id == id }) {
+                    UserMenuOverlay(profile: profile)
+                        .zIndex(6)
+                        .transition(.opacity)
+                }
                 if model.searching {
                     SearchKeyboard()
                         .zIndex(7)
@@ -139,7 +144,11 @@ struct ShellView: View {
                 model.confirmWelcome()
             case .escape:
                 model.circle()
-            case .leftArrow, .rightArrow, .upArrow, .downArrow:
+            case .leftArrow:
+                model.moveWelcome(-1)
+            case .rightArrow:
+                model.moveWelcome(1)
+            case .upArrow, .downArrow:
                 model.hoverWelcome()
             default:
                 break

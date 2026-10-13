@@ -22,7 +22,7 @@ extension ConsoleModel {
         pointerAtPad = NSEvent.mouseLocation
         guard shellOwnsPad(), patternPrompt == nil else { return }
         if phase == .welcome {
-            hoverWelcome()
+            moveWelcome(delta)
             return
         }
         if searching {
@@ -114,6 +114,10 @@ extension ConsoleModel {
             kbPress()
             return
         }
+        if userMenuID != nil {
+            confirmUserMenu()
+            return
+        }
         if showAdd {
             confirmAdd()
             return
@@ -161,7 +165,11 @@ extension ConsoleModel {
             return
         }
         if phase == .welcome {
-            returnToBoot()
+            if patternOffer {
+                dismissPatternOffer()
+            } else {
+                returnToBoot()
+            }
             return
         }
         if showAdd {
@@ -188,12 +196,21 @@ extension ConsoleModel {
             ConsoleSound.shared.back()
             return
         }
+        if searching, kbTarget != .search {
+            closeNameEntry()
+            ConsoleSound.shared.back()
+            return
+        }
         if searching {
             withAnimation(.easeOut(duration: 0.2)) {
                 searching = false
                 query = ""
             }
             ConsoleSound.shared.back()
+            return
+        }
+        if userMenuID != nil {
+            closeUserMenu()
             return
         }
         if tab == .settings, !showSettings, settingsInContent {
@@ -341,7 +358,7 @@ extension ConsoleModel {
         }
         if !searching, shellOwnsPad(), phase == .shell {
             if showSettings {
-                let next = min(4, max(0, panelIndex + delta))
+                let next = min(5, max(0, panelIndex + delta))
                 if next != panelIndex {
                     ConsoleSound.shared.tick(horizontal: delta)
                     panelIndex = next
@@ -352,8 +369,8 @@ extension ConsoleModel {
                 }
                 return
             }
-            if tab == .settings {
-                let next = min(2, max(0, settingsSection + delta))
+            if tab == .settings, userMenuID == nil {
+                let next = min(3, max(0, settingsSection + delta))
                 if next != settingsSection {
                     ConsoleSound.shared.tick(horizontal: delta)
                     settingsSection = next
@@ -373,6 +390,10 @@ extension ConsoleModel {
     }
 
     func finishSearch() {
+        if kbTarget != .search {
+            finishNameEntry()
+            return
+        }
         ConsoleSound.shared.confirm()
         withAnimation(.easeOut(duration: 0.2)) { searching = false }
         selected = 0

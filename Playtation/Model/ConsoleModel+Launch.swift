@@ -100,6 +100,7 @@ extension ConsoleModel {
                 $0.lastPlayed = Date()
                 $0.playCount += 1
             }
+            recordPlay(game.id)
             banner = "Opening \(service.name)"
             MediaApps.open(service)
             return
@@ -225,6 +226,7 @@ extension ConsoleModel {
         record.playCount += 1
         records[game.id] = record
         LibraryStore.save(records)
+        recordPlay(game.id)
         pinSelected(to: game.id)
         if banner?.hasPrefix("Starting") == true { banner = nil }
     }

@@ -74,6 +74,10 @@ extension ConsoleModel {
             steerGameSettings(horizontal: horizontal, vertical: vertical)
             return true
         }
+        if userMenuID != nil {
+            if let vertical { stepUserMenu(vertical) }
+            return true
+        }
         if tab == .settings {
             steerSettings(horizontal: horizontal, vertical: vertical)
             return true
@@ -95,7 +99,8 @@ extension ConsoleModel {
         switch panelIndex {
         case 0, 1: return 4
         case 2, 3: return 3
-        default: return currentGame?.installDirectory == nil ? 3 : 4
+        case 4: return currentGame?.installDirectory == nil ? 3 : 4
+        default: return playersRowCount()
         }
     }
 
@@ -106,7 +111,7 @@ extension ConsoleModel {
                 if (0..<gameRowCount).contains(next) {
                     ConsoleSound.shared.tick(vertical: vertical)
                     gameRow = next
-                } else if vertical > 0, panelIndex < 4 {
+                } else if vertical > 0, panelIndex < 5 {
                     ConsoleSound.shared.tick(vertical: vertical)
                     panelIndex += 1
                     gameRow = 0
@@ -118,7 +123,7 @@ extension ConsoleModel {
                     ConsoleFeel.shared.bump()
                 }
             } else {
-                let next = min(4, max(0, panelIndex + vertical))
+                let next = min(5, max(0, panelIndex + vertical))
                 guard next != panelIndex else {
                     ConsoleFeel.shared.bump()
                     return
@@ -174,6 +179,8 @@ extension ConsoleModel {
         case 3:
             let modes: [String?] = [nil, "dinput", "xinput"]
             updateRecord(game.id) { $0.controller = modes[min(gameRow, modes.count - 1)] }
+        case 5:
+            toggleAccess(game, row: gameRow)
         default:
             switch gameRow {
             case 0:
@@ -215,7 +222,7 @@ extension ConsoleModel {
                 ConsoleSound.shared.tick(vertical: vertical)
                 settingsRow = next
             } else {
-                let next = min(2, max(0, settingsSection + vertical))
+                let next = min(3, max(0, settingsSection + vertical))
                 guard next != settingsSection else {
                     ConsoleFeel.shared.bump()
                     return
@@ -270,6 +277,7 @@ extension ConsoleModel {
         switch settingsSection {
         case 0: return modelBottlesEmpty ? 1 : 9
         case 1: return max(bottles.count, 1)
+        case 3: return usersRowCount
         default: return hasPattern ? 6 : 5
         }
     }
@@ -294,6 +302,10 @@ extension ConsoleModel {
     }
 
     func confirmSettings() {
+        if settingsSection == 3 {
+            confirmUsersRow()
+            return
+        }
         if settingsSection == 2, settingsRow >= 4 {
             if settingsRow == 4 { beginPatternSetup() } else { removePattern() }
             return

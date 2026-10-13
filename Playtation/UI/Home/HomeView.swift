@@ -149,7 +149,7 @@ struct DashboardView: View {
             iconButton("magnifyingglass", index: 0) { model.activateTop(0) }
             iconButton("gearshape", index: 1) { model.activateTop(1) }
             Button { model.activateTop(2) } label: {
-                ProfileMark(image: model.accountImage, name: model.accountName, side: 44)
+                ProfileMark(image: model.accountImage, name: model.accountName, side: 44, color: model.accountColor)
                     .overlay(Circle().stroke(Color.white.opacity((model.zone == .top && model.topIndex == 2) || model.showProfile ? 0.95 : 0.3), lineWidth: 2))
             }
             .buttonStyle(.plain)
@@ -325,7 +325,7 @@ struct DashboardView: View {
                     model.panelIndex = index
                     model.confirmProfile()
                 } label: {
-                    Text(action.title(hasPattern: model.hasPattern))
+                    Text(action.title(hasPattern: model.hasPattern, sharedConsole: model.profiles.count > 1))
                         .font(PS.font(14, .bold))
                         .foregroundStyle(Color.white)
                         .frame(width: 210, alignment: .leading)

@@ -80,6 +80,14 @@ enum ScreenshotTour {
         draw([3, 7, 5], then: CGPoint(x: 0.8, y: 0.26), model: model)
         await pause(2)
         await save("pattern-sign-in", in: directory)
+        model.cancelPattern()
+
+        // Shown directly; nothing is chosen, so the first-sign-in flag is untouched.
+        await pause(1)
+        model.patternOfferChoice = 0
+        model.patternOffer = true
+        await pause(1.5)
+        await save("pattern-offer", in: directory)
         NSApp.terminate(nil)
     }
 

@@ -136,6 +136,8 @@ struct GameRecord: Codable, Equatable, Sendable {
     /// `dinput` leaves the pad as a joystick. `xinput` maps it to an XInput gamepad.
     var controller: String?
     var hidden: Bool = false
+    /// Profiles that see this game. Nil means everyone; the main user always sees it.
+    var users: [String]?
 }
 
 struct LibrarySnapshot: Sendable {

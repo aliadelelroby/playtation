@@ -12,6 +12,16 @@ final class ConsoleModel: ObservableObject {
     @Published var allGames: [Game] = [] { didSet { gamesCache = nil } }
     @Published var selected = 0
     @Published var records: [String: GameRecord] = [:] { didSet { gamesCache = nil } }
+    @Published var profiles: [Profile] = [] { didSet { gamesCache = nil } }
+    /// The profile highlighted on the profile screen, then the one signed in.
+    @Published var profileID = Profile.ownerID { didSet { gamesCache = nil } }
+    /// Settings > Users: the user whose menu is open.
+    @Published var userMenuID: String?
+    @Published var userMenuIndex = 0
+    @Published var confirmUserRemove = false
+    /// What the on-screen keyboard is typing into.
+    @Published var kbTarget: KeyboardTarget = .search
+    @Published var nameDraft = ""
     @Published var loading = true
     @Published var banner: String?
     @Published var launchingID: String?
@@ -76,6 +86,10 @@ final class ConsoleModel: ObservableObject {
     @Published var patternFailed = false
     /// Bumped on every failure; the grid shakes when it changes.
     @Published var patternShake = 0
+    /// The first sign-in asks whether to set a pattern before entering.
+    @Published var patternOffer = false
+    /// 0 = set up a pattern, 1 = not now.
+    @Published var patternOfferChoice = 0
     enum PatternPrompt: Equatable {
         case unlock
         case create
@@ -83,6 +97,10 @@ final class ConsoleModel: ObservableObject {
     }
     /// Stays set once the profile screen has introduced itself, so a redraw cannot play that intro again.
     @Published var welcomeIntroduced = false
+    enum KeyboardTarget: Equatable {
+        case search, newUser
+        case rename(String)
+    }
     enum DashZone { case top, tiles, hero }
     enum HomeCategory: String, CaseIterable, Identifiable {
         case all, games, apps
@@ -126,8 +144,10 @@ final class ConsoleModel: ObservableObject {
 
     func computeGames() -> [Game] {
         let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let played = currentProfile.played
         return deduped(allGames)
             .filter { !(records[$0.id]?.hidden ?? false) }
+            .filter { canPlay($0) }
             .filter { !Self.helperEntry($0) }
             .filter { !$0.isAction || (needle.isEmpty && category != .apps) }
             .filter {
@@ -142,8 +162,8 @@ final class ConsoleModel: ObservableObject {
                 let lrank = lhs.isAction ? 3 : (lhs.webURL != nil ? 2 : (lhs.isLauncher ? 1 : 0))
                 let rrank = rhs.isAction ? 3 : (rhs.webURL != nil ? 2 : (rhs.isLauncher ? 1 : 0))
                 if lrank != rrank { return lrank < rrank }
-                let left = records[lhs.id]?.lastPlayed ?? .distantPast
-                let right = records[rhs.id]?.lastPlayed ?? .distantPast
+                let left = played[lhs.id]?.lastPlayed ?? .distantPast
+                let right = played[rhs.id]?.lastPlayed ?? .distantPast
                 if left != right { return left > right }
                 return lhs.order < rhs.order
             }
@@ -164,15 +184,23 @@ final class ConsoleModel: ObservableObject {
         return visible[selected]
     }
 
-    var accountName: String { ScreenshotTour.isOn ? "Player" : NSFullUserName() }
+    var accountName: String { displayName(of: currentProfile) }
 
-    var accountImage: NSImage? {
-        if ScreenshotTour.isOn { return nil }
-        return CBIdentity(name: NSUserName(), authority: CBIdentityAuthority.default())?.image
-    }
+    var accountImage: NSImage? { image(of: currentProfile) }
+
+    var accountColor: Color { currentProfile.tint }
+
+    /// The profile screen starts on whoever signed in last.
+    static let lastProfileKey = "lastProfile"
 
     init() {
         records = LibraryStore.load()
+        var loaded = ProfileStore.load(records: records)
+        ProfileStore.clearForgottenPattern(&loaded)
+        profiles = loaded
+        if let last = UserDefaults.standard.string(forKey: Self.lastProfileKey), profiles.contains(where: { $0.id == last }) {
+            profileID = last
+        }
         relative.unitsStyle = .full
         controllers = ControllerSupport(model: self)
         controllers?.start()

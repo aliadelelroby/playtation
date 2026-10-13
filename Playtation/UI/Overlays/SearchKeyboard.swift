@@ -47,7 +47,11 @@ struct SearchKeyboard: View {
             Color.black.opacity(0.62).ignoresSafeArea()
             VStack(spacing: 28) {
                 field
-                results
+                if model.kbTarget == .search {
+                    results
+                } else {
+                    nameHeading
+                }
                 keyboard
                 hints
             }
@@ -62,17 +66,34 @@ struct SearchKeyboard: View {
         CGFloat(SearchKeyboardLayout.columns) * keyWidth + CGFloat(SearchKeyboardLayout.columns - 1) * gap
     }
 
+    private var naming: Bool { model.kbTarget != .search }
+
+    private var nameHeading: some View {
+        VStack(spacing: 6) {
+            Text(model.kbTarget == .newUser ? "Add User" : "Rename")
+                .font(PS.font(26, .regular))
+                .foregroundStyle(.white)
+            Text(model.kbTarget == .newUser
+                 ? "They'll get their own profile, play history and sign-in pattern."
+                 : "This is the name on the profile screen.")
+                .font(PS.font(14, .regular))
+                .foregroundStyle(.white.opacity(0.6))
+        }
+        .frame(height: 96)
+    }
+
     private var field: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
+        let text = naming ? model.nameDraft : model.query
+        return HStack(spacing: 16) {
+            Image(systemName: naming ? "person.crop.circle" : "magnifyingglass")
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.85))
             HStack(spacing: 2) {
-                if model.query.isEmpty {
-                    Text("Search games and apps")
+                if text.isEmpty {
+                    Text(naming ? "Name" : "Search games and apps")
                         .foregroundStyle(.white.opacity(0.4))
                 } else {
-                    Text(model.query).foregroundStyle(.white)
+                    Text(text).foregroundStyle(.white)
                 }
                 Caret()
                 Spacer(minLength: 0)
@@ -92,7 +113,7 @@ struct SearchKeyboard: View {
 
     private var countLabel: String {
         let count = model.games.count
-        if model.query.isEmpty { return "" }
+        if naming || model.query.isEmpty { return "" }
         return count == 0 ? "No matches" : (count == 1 ? "1 result" : "\(count) results")
     }
 

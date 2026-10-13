@@ -3,16 +3,16 @@ import SwiftUI
 
 /// Sign-in pattern: asking for it on the profile screen and setting it up from Settings.
 extension ConsoleModel {
-    var hasPattern: Bool { PatternLock.isSet }
+    var hasPattern: Bool { currentProfile.pattern != nil }
 
     enum ProfileAction: Equatable {
         case setPattern, removePattern, signOut, power
 
-        func title(hasPattern: Bool) -> String {
+        func title(hasPattern: Bool, sharedConsole: Bool = false) -> String {
             switch self {
             case .setPattern: return hasPattern ? "Change sign-in pattern" : "Set sign-in pattern"
             case .removePattern: return "Remove sign-in pattern"
-            case .signOut: return "Sign out"
+            case .signOut: return sharedConsole ? "Switch user" : "Sign out"
             case .power: return "Power"
             }
         }
@@ -75,6 +75,31 @@ extension ConsoleModel {
         ConsoleSound.shared.confirm()
     }
 
+    /// First sign-in: ask on the profile screen whether to protect it with a pattern.
+    func offerPattern() {
+        ConsoleSound.shared.confirm()
+        patternOfferChoice = 0
+        withAnimation(.easeOut(duration: 0.25)) { patternOffer = true }
+    }
+
+    func confirmPatternOffer() {
+        guard patternOffer else { return }
+        withAnimation(.easeOut(duration: 0.25)) { patternOffer = false }
+        if patternOfferChoice == 0 {
+            beginPatternSetup()
+        } else {
+            updateProfile(profileID) { $0.patternOffered = true }
+            signIn()
+        }
+    }
+
+    /// Circle on the offer: back to the profile card. It asks again next time.
+    func dismissPatternOffer() {
+        guard patternOffer else { return }
+        ConsoleSound.shared.back()
+        withAnimation(.easeOut(duration: 0.25)) { patternOffer = false }
+    }
+
     func beginPatternSetup() {
         ConsoleSound.shared.confirm()
         withAnimation(.easeOut(duration: 0.2)) {
@@ -84,7 +109,7 @@ extension ConsoleModel {
 
     func removePattern() {
         guard hasPattern else { return }
-        PatternLock.clear()
+        updateProfile(profileID) { $0.pattern = nil }
         ConsoleSound.shared.confirm()
         settingsRow = min(settingsRow, settingsRowCount - 1)
         banner = "Sign-in pattern removed."
@@ -92,10 +117,12 @@ extension ConsoleModel {
     }
 
     func cancelPattern() {
-        guard patternPrompt != nil else { return }
+        guard let prompt = patternPrompt else { return }
         ConsoleSound.shared.back()
         withAnimation(.easeOut(duration: 0.2)) {
             patternPrompt = nil
+            // Backing out of first-sign-in setup returns to the offer, not the bare profile.
+            if phase == .welcome, prompt != .unlock { patternOffer = true }
         }
         pattern.reset()
         patternMessage = nil
@@ -140,7 +167,7 @@ extension ConsoleModel {
         }
         switch prompt {
         case .unlock:
-            guard PatternLock.matches(dots) else {
+            guard PatternLock.matches(dots, sealed: currentProfile.pattern) else {
                 rejectPattern("Wrong pattern. Try again.")
                 return
             }
@@ -158,12 +185,19 @@ extension ConsoleModel {
                 rejectPattern("Those didn't match. Draw a new pattern.", restart: true)
                 return
             }
-            PatternLock.save(dots)
+            updateProfile(profileID) {
+                $0.pattern = PatternLock.seal(dots)
+                $0.patternOffered = true
+            }
             ConsoleSound.shared.confirm()
             withAnimation(.easeOut(duration: 0.2)) { patternPrompt = nil }
             pattern.reset()
             patternMessage = nil
-            banner = "Sign-in pattern saved."
+            if phase == .welcome {
+                signIn()
+            } else {
+                banner = "Sign-in pattern saved."
+            }
         }
     }
 

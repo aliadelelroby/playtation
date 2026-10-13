@@ -6,18 +6,19 @@ struct ProfileMark: View {
     var image: NSImage?
     var name: String
     var side: CGFloat = 56
+    var color: Color = PS.profile
 
     var body: some View {
         ZStack {
-            Circle().fill(PS.profile)
+            Circle().fill(color)
             if let image {
                 Image(nsImage: Self.circular(image, diameter: side * 2))
                     .resizable()
                     .interpolation(.high)
                     .frame(width: side, height: side)
             } else {
-                Text(String(name.prefix(1)))
-                    .font(PS.font(22, .bold))
+                Text(String(name.prefix(1)).uppercased())
+                    .font(PS.font(max(22, side * 0.36), .bold))
                     .foregroundStyle(.black)
             }
         }

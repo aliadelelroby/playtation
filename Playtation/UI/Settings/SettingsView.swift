@@ -4,13 +4,14 @@ struct SettingsView: View {
     @EnvironmentObject private var model: ConsoleModel
 
     enum Section: String, CaseIterable, Identifiable {
-        case graphics, storage, system
+        case graphics, storage, system, users
         var id: String { rawValue }
         var title: String {
             switch self {
             case .graphics: return "Graphics"
             case .storage: return "Storage"
             case .system: return "System"
+            case .users: return "Users"
             }
         }
     }
@@ -62,6 +63,7 @@ struct SettingsView: View {
                         case .graphics: graphics
                         case .storage: storage
                         case .system: system
+                        case .users: users
                         }
                     }
                     .padding(36)
@@ -201,6 +203,87 @@ struct SettingsView: View {
                 .foregroundStyle(.black.opacity(0.55))
                 .frame(maxWidth: 560, alignment: .leading)
         }
+    }
+
+    private var users: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Users")
+                .font(PS.font(34, .medium))
+            Text(model.signedInAsOwner
+                 ? "Everyone who plays here gets a profile with their own play history and sign-in pattern. Choose who sees a game from its Game settings, under Players. You always see every game."
+                 : "Only \(model.displayName(of: model.profiles[0])) can add or remove users. You can rename yourself or change your color.")
+                .font(PS.font(14, .regular))
+                .foregroundStyle(.black.opacity(0.62))
+                .frame(maxWidth: 640, alignment: .leading)
+            ForEach(Array(model.profiles.enumerated()), id: \.element.id) { index, profile in
+                userRow(profile, contentFocused && model.settingsRow == index)
+                    .id("row\(index)")
+            }
+            if model.signedInAsOwner, model.profiles.count < Profile.limit {
+                let index = model.profiles.count
+                let focused = contentFocused && model.settingsRow == index
+                Button {
+                    model.settingsInContent = true
+                    model.settingsRow = index
+                    model.beginNameEntry(.newUser)
+                } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(width: 44, height: 44)
+                            .background(Circle().stroke((focused ? Color.white : Color.black).opacity(0.4), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4])))
+                        Text("Add user").font(PS.font(15, .bold))
+                        Spacer()
+                    }
+                    .padding(14)
+                    .frame(maxWidth: 680)
+                    .background(RoundedRectangle(cornerRadius: Corner.row, style: .continuous).fill(focused ? Color.black : Color.white.opacity(0.8)))
+                    .foregroundStyle(focused ? Color.white : Color.black)
+                }
+                .buttonStyle(.plain)
+                .id("row\(index)")
+            }
+        }
+    }
+
+    private func userRow(_ profile: Profile, _ focused: Bool) -> some View {
+        let ink = focused ? Color.white : Color.black
+        let editable = model.signedInAsOwner || profile.id == model.profileID
+        var detail: [String] = []
+        if profile.isOwner { detail.append("Main user") }
+        if profile.id == model.profileID { detail.append("Signed in") }
+        detail.append(profile.pattern == nil ? "No pattern" : "Pattern on")
+        if !profile.isOwner {
+            let limited = model.records.values.filter { $0.users.map { !$0.contains(profile.id) } ?? false }.count
+            if limited > 0 { detail.append(limited == 1 ? "1 game hidden" : "\(limited) games hidden") }
+        }
+        return Button {
+            guard let index = model.profiles.firstIndex(of: profile) else { return }
+            model.settingsInContent = true
+            model.settingsRow = index
+            model.confirmUsersRow()
+        } label: {
+            HStack(spacing: 14) {
+                ProfileMark(image: model.image(of: profile), name: model.displayName(of: profile), side: 44, color: profile.tint)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(model.displayName(of: profile)).font(PS.font(15, .bold))
+                    Text(detail.joined(separator: " · "))
+                        .font(PS.font(13, .regular))
+                        .foregroundStyle(ink.opacity(0.7))
+                }
+                Spacer()
+                if editable {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ink.opacity(0.5))
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: 680)
+            .background(RoundedRectangle(cornerRadius: Corner.row, style: .continuous).fill(focused ? Color.black : Color.white.opacity(0.8)))
+            .foregroundStyle(ink)
+        }
+        .buttonStyle(.plain)
     }
 
     private func resolutionRow(_ focused: Bool) -> some View {

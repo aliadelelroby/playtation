@@ -17,6 +17,7 @@ Playtation is a SwiftUI macOS app with one observable model.
 | `+Artwork` | Names, metadata, icons, tiles and backdrops |
 | `+Boot` | Boot and welcome flow |
 | `+Pattern` | Sign-in pattern: asking for it on the profile screen, setting it up from Settings |
+| `+Profiles` | Users: who is signed in, per-user play history, Settings > Users, and Game settings > Players |
 
 Views read the model and call its methods. They hold no game logic.
 
@@ -48,7 +49,11 @@ A `Game` is a plain value. Special kinds are marked by fields, not subclasses: `
 which macOS otherwise swallows. `ControllerAgent` is a login item that keeps that working when
 Playtation is not running. While a game runs, `PadGate` stops the shell from reacting to the pad.
 The touchpad draws the sign-in pattern: `PatternTrace` turns touch positions into dots (pure, unit
-tested) and `PatternLock` keeps a salted hash of the result.
+tested) and `PatternLock` hashes the result with a salt. The hash is stored on the user's `Profile`.
+
+Users live in `profiles.json`, next to `library.json`. The main user (`Profile.ownerID`) is the Mac account
+and manages everyone else. A game's `GameRecord.users` limits who sees it: nil means everyone, and the
+main user always sees every game. Graphics, sync and controller settings stay on the shared `GameRecord`.
 
 ## UI
 

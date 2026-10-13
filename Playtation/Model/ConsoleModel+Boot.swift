@@ -8,6 +8,8 @@ import UniformTypeIdentifiers
 extension ConsoleModel {
     func enter() {
         phase = .shell
+        selected = 0
+        zone = .tiles
         signingIn = false
         ConsoleSound.shared.startMusic()
         ConsoleFeel.shared.armIfNeeded()
@@ -27,6 +29,22 @@ extension ConsoleModel {
         }
     }
 
+    /// Arrows on the profile screen: pick between the pattern offer's choices, or just tick.
+    func moveWelcome(_ delta: Int) {
+        guard phase == .welcome, !signingIn, welcomeIntroduced else { return }
+        guard patternOffer else {
+            stepProfile(delta)
+            return
+        }
+        let next = min(1, max(0, patternOfferChoice + delta))
+        guard next != patternOfferChoice else {
+            ConsoleFeel.shared.bump()
+            return
+        }
+        ConsoleSound.shared.tick(horizontal: delta)
+        patternOfferChoice = next
+    }
+
     func hoverWelcome() {
         guard phase == .welcome, !signingIn, welcomeIntroduced else { return }
         ConsoleSound.shared.hover()
@@ -34,12 +52,20 @@ extension ConsoleModel {
 
     func confirmWelcome() {
         guard phase == .welcome, !signingIn else { return }
-        if patternPrompt == .unlock {
+        if patternPrompt != nil {
             submitPattern()
+            return
+        }
+        if patternOffer {
+            confirmPatternOffer()
             return
         }
         if hasPattern {
             askForPattern()
+            return
+        }
+        if !currentProfile.patternOffered {
+            offerPattern()
             return
         }
         signIn()
@@ -48,6 +74,8 @@ extension ConsoleModel {
     func signIn() {
         guard phase == .welcome, !signingIn else { return }
         signingIn = true
+        patternOffer = false
+        UserDefaults.standard.set(profileID, forKey: Self.lastProfileKey)
         ConsoleSound.shared.confirm()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 900_000_000)
@@ -57,7 +85,7 @@ extension ConsoleModel {
     }
 
     func returnToBoot() {
-        guard phase == .welcome, !signingIn, patternPrompt == nil else { return }
+        guard phase == .welcome, !signingIn, patternPrompt == nil, !patternOffer else { return }
         ConsoleSound.shared.back()
         ConsoleSound.shared.stopMusic()
         welcomeIntroduced = false
