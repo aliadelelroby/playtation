@@ -245,7 +245,10 @@ extension ConsoleModel {
         if !closed {
             PlaytationLaunch.reveal()
             let lasted = Date().timeIntervalSince(started)
-            if process.terminationStatus != 0, lasted < 4 {
+            // watchAlive lands here while winewrapper may still be alive; terminationStatus
+            // raises an ObjC exception on a running Process.
+            let failed = !process.isRunning && process.terminationStatus != 0
+            if failed, lasted < 4 {
                 banner = "CrossOver couldn't start \(name)."
             } else if lasted < 90 {
                 banner = "\(name) closed unexpectedly."
