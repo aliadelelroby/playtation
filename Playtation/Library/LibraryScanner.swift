@@ -71,7 +71,16 @@ enum LibraryScanner {
         var seenExecutables = Set(games.compactMap { $0.executablePath?.lowercased() })
         var seenNames = Set(games.map { TitleMatcher.clean($0.name).lowercased() })
         guard let wine = wineBinary() else { return games }
-        for game in SteamScanner.games(in: bottle, wineBinary: wine, order: &order) {
+        let steamGames = SteamScanner.games(in: bottle, wineBinary: wine, order: &order)
+        var merged = Set<Int>()
+        for index in games.indices {
+            guard let steam = steamTwin(of: games[index], in: steamGames, bottle: bottle), let appID = steam.steamAppID else { continue }
+            games[index] = launchedThroughSteam(games[index], like: steam)
+            merged.insert(appID)
+            if let exe = steam.executablePath?.lowercased() { seenExecutables.insert(exe) }
+        }
+        for game in steamGames {
+            if let appID = game.steamAppID, merged.contains(appID) { continue }
             if let exe = game.executablePath?.lowercased(), !seenExecutables.insert(exe).inserted { continue }
             let cleaned = TitleMatcher.clean(game.name).lowercased()
             if seenNames.contains(cleaned) { continue }
@@ -79,6 +88,47 @@ enum LibraryScanner {
             games.append(game)
         }
         return games
+    }
+
+    /// The Steam library entry behind a menu or desktop shortcut: a `steam://rungameid/` link, or an exe
+    /// inside a Steam library. Those shortcuts open Steam's full window, so they launch the hidden way instead.
+    private static func steamTwin(of game: Game, in steamGames: [Game], bottle: Bottle) -> Game? {
+        let candidates = steamGames.filter { GameLauncher.launchesThroughSteam($0) }
+        if let appID = steamLinkAppID(game.windowsStart, bottle: bottle) {
+            return candidates.first { $0.steamAppID == appID }
+        }
+        guard let exe = game.executablePath?.lowercased(), exe.contains("/steamapps/common/") else { return nil }
+        return candidates.first { $0.executablePath?.lowercased() == exe }
+            ?? candidates.first { steam in
+                guard let dir = steam.installDirectory?.lowercased() else { return false }
+                return exe.hasPrefix(dir + "/")
+            }
+    }
+
+    /// Keeps the shortcut's tile (id, name, icon) and takes Steam's way of starting it.
+    private static func launchedThroughSteam(_ game: Game, like steam: Game) -> Game {
+        var game = game
+        game.windowsStart = steam.windowsStart
+        game.launchArguments = steam.launchArguments
+        game.steamAppID = steam.steamAppID
+        if game.executablePath == nil {
+            game.executablePath = steam.executablePath
+            game.installDirectory = steam.installDirectory
+        }
+        if game.discoveredArt == nil { game.discoveredArt = steam.discoveredArt }
+        return game
+    }
+
+    private static func steamLinkAppID(_ windowsStart: String, bottle: Bottle) -> Int? {
+        guard windowsStart.lowercased().hasSuffix(".url"),
+              let native = resolveWindows(windowsStart, bottlePath: bottle.path),
+              let text = try? String(contentsOfFile: native, encoding: .utf8)
+                ?? String(contentsOfFile: native, encoding: .isoLatin1),
+              let regex = try? NSRegularExpression(pattern: #"steam://rungameid/(\d+)"#, options: .caseInsensitive),
+              let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let inner = Range(match.range(at: 1), in: text)
+        else { return nil }
+        return Int(text[inner])
     }
 
     private static func loadMenuGames(bottle: Bottle, order: inout Int) -> [Game] {

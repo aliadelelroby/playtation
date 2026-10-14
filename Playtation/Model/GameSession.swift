@@ -8,6 +8,8 @@ final class GameSession {
     let wineBinary: String
     let process: Process
     var userClosed = false
+    /// steam.exe to shut down when the game exits, set when Playtation started Steam for it.
+    var steamToStop: (bottle: String, exe: String)?
 
     init(gameID: String, name: String, bottlePath: String, wineBinary: String, process: Process) {
         self.gameID = gameID

@@ -2,6 +2,27 @@ import Darwin
 import Foundation
 
 enum GameLauncher {
+    /// Steam has to be running for most Steam games (Steamworks, DRM), so it starts in the
+    /// background with no library, friends or chat windows.
+    static let hiddenSteamArguments = ["-silent", "-nofriendsui", "-nochatui"]
+
+    static func launchesThroughSteam(_ game: Game) -> Bool {
+        game.steamAppID != nil && game.launchArguments.contains("-applaunch")
+    }
+
+    /// Asks the bottle's Steam to quit, the way its own Exit menu item does.
+    static func shutDownSteam(bottleName: String, wineBinary: String, steamExe: String) {
+        guard FileManager.default.isExecutableFile(atPath: wineBinary) else { return }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: wineBinary)
+        process.arguments = ["--bottle", bottleName, "--no-gui", steamExe, "-shutdown"]
+        process.currentDirectoryURL = URL(fileURLWithPath: "/")
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        try? process.run()
+    }
+
     /// Same argv CrossOver's Start Menu scripts use:
     /// `wine --bottle NAME --check --wait-children --start "C:/users/.../Start Menu/Game.lnk"`
     static func launch(_ game: Game, environment: String?) throws -> Process {

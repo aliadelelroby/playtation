@@ -91,7 +91,9 @@ your controller. No more hunting through Finder and bottle folders.
 Playtation launches games through [CrossOver](https://www.codeweavers.com/crossover), so install it first
 (the free trial works). Then add your games the way you normally would:
 
-- **Steam**: install the Windows Steam client into a CrossOver bottle, sign in, and install games.
+- **Steam**: install the Windows Steam client into a CrossOver bottle, sign in, and install games. Playtation
+  starts Steam hidden in the background when you play, so you only see the game, and closes it again
+  when the game quits.
 - **Other stores or setup files**: use CrossOver's *Install* button, or Playtation's **Add Game** tile later.
 
 ### 2. Install Playtation

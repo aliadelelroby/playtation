@@ -13,6 +13,12 @@ enum ProcessProbe {
         "steamerrorreporter.exe", "steamservice.exe"
     ]
 
+    /// Any Mac process with this name, e.g. `steam.exe` from any bottle.
+    static func anyRunning(named name: String) -> Bool {
+        let wanted = name.lowercased()
+        return list().contains { $0.name.lowercased() == wanted }
+    }
+
     static func gameRunning(winePID: Int32, executablePath: String?, windowsStart: String) -> Bool {
         !gameProcessIDs(winePID: winePID, executablePath: executablePath, windowsStart: windowsStart).isEmpty
             || !namedGameIDs(executablePath: executablePath, windowsStart: windowsStart).isEmpty

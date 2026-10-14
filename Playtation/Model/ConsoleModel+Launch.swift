@@ -130,6 +130,7 @@ extension ConsoleModel {
                 if let path = self.bottle(for: game)?.path {
                     WineControllers.apply(bottlePath: path, wineBinary: game.wineBinary, mode: self.records[game.id]?.controller)
                 }
+                let steamWasRunning = ProcessProbe.anyRunning(named: "steam.exe")
                 let process = try GameLauncher.launch(game, environment: env)
                 let running = GameSession(
                     gameID: game.id,
@@ -138,6 +139,9 @@ extension ConsoleModel {
                     wineBinary: game.wineBinary,
                     process: process
                 )
+                if GameLauncher.launchesThroughSteam(game), !steamWasRunning {
+                    running.steamToStop = (game.bottleName, game.windowsStart)
+                }
                 self.session = running
                 process.terminationHandler = { proc in
                     Task { @MainActor in
@@ -161,7 +165,8 @@ extension ConsoleModel {
             let winePID = process.processIdentifier
             let exe = game.executablePath
             let start = game.windowsStart
-            let deadline = Date().addingTimeInterval(game.steamAppID == nil ? 20 : 45)
+            // Steam starting hidden in the background can take most of a minute before the game appears.
+            let deadline = Date().addingTimeInterval(game.steamAppID == nil ? 20 : 90)
             while Date() < deadline {
                 if session?.process !== process { return }
                 if !process.isRunning {
@@ -241,6 +246,10 @@ extension ConsoleModel {
         guard session?.process === process else { return }
         let closed = session?.userClosed == true
         let gameID = session?.gameID
+        // Closing from Playtation already stopped the whole bottle; a game that quit on its own leaves Steam behind.
+        if !closed, let ended = session, let steam = ended.steamToStop {
+            GameLauncher.shutDownSteam(bottleName: steam.bottle, wineBinary: ended.wineBinary, steamExe: steam.exe)
+        }
         clearSession(process)
         if launchingID != nil, launchingID == gameID { launchingID = nil }
         DisplayFit.restore()

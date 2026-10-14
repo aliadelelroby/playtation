@@ -163,7 +163,7 @@ enum SteamScanner {
             installDirectory: directory,
             discoveredArt: art,
             order: order,
-            launchArguments: hasSteam ? ["-applaunch", "\(appID)"] : [],
+            launchArguments: hasSteam ? GameLauncher.hiddenSteamArguments + ["-applaunch", "\(appID)"] : [],
             steamAppID: appID
         )
     }
